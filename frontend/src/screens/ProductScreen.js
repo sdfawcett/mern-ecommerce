@@ -10,7 +10,7 @@ import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
 
 const ProductScreen =  ( {history, match} ) => {
   const dispatch = useDispatch()
-  const [qty, setQty] = useState(0)
+  const [qty, setQty] = useState(1)
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
 
