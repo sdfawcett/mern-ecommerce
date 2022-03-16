@@ -1,35 +1,51 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Row, Col, Image, ListGroup, Card, Button } from 'react-bootstrap'
+import React, { useEffect, useState } from 'react'
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { Row, Col, Image, ListGroup, Card, Button, Form } from 'react-bootstrap'
 import Rating from '../components/Rating'
-import axios from 'axios'
+import Message from '../components/Message'
+import Loader from '../components/Loader'
+import { listProductDetails } from '../actions/productActions'
+import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
 
-const ProductScreen =  ( {match} ) => {
-  //const params = useParams()
-  //const product = products.find((p) => p._id === params.id)
-  const [product, setProduct] = useState({})
+const ProductScreen =  ( {history, match} ) => {
+  const dispatch = useDispatch()
+  const [qty, setQty] = useState(0)
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+
+  const productDetails = useSelector((state) => state.productDetails)
+  const { loading, error, product } = productDetails
   const { id } = useParams()
 
   useEffect(() => {
-    const fetchProduct = async () => {
-        const { data } = await axios.get(`/api/products/${encodeURIComponent(id)}`)
+    dispatch(listProductDetails(id))
+  }, [dispatch, id])
 
-        setProduct(data)
-    }
+  const location = useLocation();
+ 
 
-    fetchProduct()
-}, [id])
+
+  const navigate = useNavigate();
+  const addToCartHandler = () => {
+    navigate(`/cart/${id}?qty=${qty}`)
+}
 
   return (
     <>
       <Link className='btn btn-light my-3' to='/'>
         Go Back
       </Link>
-      <Row>
-        <Col md={6}>
+      {loading 
+      ? <Loader /> 
+      : error 
+      ? <Message variant='danger'>{error}</Message> 
+      : (
+        <Row>
+        <Col className='product-page-section' md={6}>
           <Image src={product.image} alt={product.name} fluid />
         </Col>
-        <Col md={3}>
+        <Col className='product-page-section' md={3}>
 
           <ListGroup variant='flush'>
             <ListGroup.Item>
@@ -53,16 +69,16 @@ const ProductScreen =  ( {match} ) => {
 
           </ListGroup>
         </Col>
-        <Col md={3}>
+        <Col className='product-page-section' md={3}>
 
           <Card>
             <ListGroup variant='flush'>
               <ListGroup.Item>
                 <Row>
-                  <Col>
+                  <Col className='product-page-section'>
                     Price:
                   </Col>
-                  <Col>
+                  <Col className='product-page-section'>
                     <strong>${product.price}</strong>
                   </Col>
                 </Row>
@@ -70,17 +86,39 @@ const ProductScreen =  ( {match} ) => {
 
               <ListGroup.Item>
                 <Row>
-                  <Col>
+                  <Col className='product-page-section'>
                     Status:
                   </Col>
-                  <Col>
+                  <Col className='product-page-section'>
                     {product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
                   </Col>
                 </Row>
               </ListGroup.Item>
 
+              {product.countInStock > 0 && (
+                  <ListGroup.Item>
+                    <Row>
+                      <Col className='product-page-section'>Qty</Col>
+                      <Col>
+                        <Form.Control
+                          as='select'
+                          value={qty}
+                          onChange={(e) => setQty(e.target.value)}
+                        >
+                          {[...Array(product.countInStock).keys()].map((x) => (
+                            <option key={x + 1} value={x + 1}>
+                              {x + 1}
+                            </option>
+                          ))}
+                        </Form.Control>
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                )}
+
               <ListGroup.Item>
                 <Button 
+                onClick={addToCartHandler}
                 className='btn-block' 
                 type='button' 
                 disabled={product.countInStock === 0}
@@ -93,6 +131,8 @@ const ProductScreen =  ( {match} ) => {
 
         </Col>
       </Row>
+      )}
+      
     </>
   )
 }

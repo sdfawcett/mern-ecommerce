@@ -9,7 +9,7 @@ import Product from '../models/productModel.js'
 // @access Public 
 router.get('/', asyncHandler(async(req, res) => {
     const products = await Product.find({})
-
+    
     res.json(products)
 }))
 
@@ -24,6 +24,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     } else {
         res.status(404)
         throw new Error('Product not found')
+
     }
     
 }))
